@@ -9,7 +9,7 @@ let
     gateway = { mode = "local"; };
     agent = {
       workspace = workspaceDir;
-      model = inst.agent.model;
+      model = { primary = inst.agent.model; };
       thinkingDefault = inst.agent.thinkingDefault;
     };
   };
@@ -27,7 +27,7 @@ let
     routing = {
       queue = {
         mode = inst.routing.queue.mode;
-        bySurface = inst.routing.queue.bySurface;
+        byProvider = inst.routing.queue.byProvider;
       };
     };
   };
@@ -174,7 +174,7 @@ let
         model = lib.mkOption {
           type = lib.types.str;
           default = cfg.defaults.model;
-          description = "Default model for this instance (provider/model).";
+          description = "Default model for this instance (provider/model). Maps to agent.model.primary.";
         };
         thinkingDefault = lib.mkOption {
           type = lib.types.enum [ "off" "minimal" "low" "medium" "high" ];
@@ -190,14 +190,14 @@ let
           description = "Queue mode when a run is active.";
         };
 
-        bySurface = lib.mkOption {
+        byProvider = lib.mkOption {
           type = lib.types.attrs;
           default = {
             telegram = "interrupt";
             discord = "queue";
             webchat = "queue";
           };
-          description = "Per-surface queue mode overrides.";
+          description = "Per-provider queue mode overrides.";
         };
       };
 
@@ -1021,14 +1021,14 @@ in {
         description = "Queue mode when a run is active.";
       };
 
-      bySurface = lib.mkOption {
+      byProvider = lib.mkOption {
         type = lib.types.attrs;
         default = {
           telegram = "interrupt";
           discord = "queue";
           webchat = "queue";
         };
-        description = "Per-surface queue mode overrides.";
+        description = "Per-provider queue mode overrides.";
       };
     };
 

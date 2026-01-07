@@ -52,6 +52,9 @@
           gateway-tests = pkgs.callPackage ./nix/checks/clawdbot-gateway-tests.nix {
             sourceInfo = sourceInfoStable;
           };
+          config-schema = pkgs.callPackage ./nix/checks/clawdbot-config-schema.nix {
+            sourceInfo = sourceInfoStable;
+          };
         } else {});
 
         devShells.default = pkgs.mkShell {
