@@ -95,13 +95,14 @@ log "Building gateway to validate pnpmDepsHash"
 if ! nix build .#clawdbot-gateway --accept-flake-config >"$build_log" 2>&1; then
   pnpm_hash=$(grep -Eo 'got: *sha256-[A-Za-z0-9+/=]+' "$build_log" | head -n 1 | sed 's/.*got: *//')
   if [[ -z "$pnpm_hash" ]]; then
-    cat "$build_log" >&2
+    tail -n 200 "$build_log" >&2 || true
     rm -f "$build_log"
     exit 1
   fi
+  log "pnpmDepsHash mismatch detected: $pnpm_hash"
   perl -0pi -e "s|pnpmDepsHash = \"[^\"]+\";|pnpmDepsHash = \"${pnpm_hash}\";|" "$source_file"
   if ! nix build .#clawdbot-gateway --accept-flake-config >"$build_log" 2>&1; then
-    cat "$build_log" >&2
+    tail -n 200 "$build_log" >&2 || true
     rm -f "$build_log"
     exit 1
   fi
