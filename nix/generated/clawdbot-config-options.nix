@@ -2992,6 +2992,29 @@ in
       };
     }; };
     };
+    exec = lib.mkOption {
+      type = t.submodule { options = {
+      applyPatch = lib.mkOption {
+        type = t.submodule { options = {
+        allowModels = lib.mkOption {
+          type = t.listOf (t.str);
+        };
+        enabled = lib.mkOption {
+          type = t.bool;
+        };
+      }; };
+      };
+      backgroundMs = lib.mkOption {
+        type = t.int;
+      };
+      cleanupMs = lib.mkOption {
+        type = t.int;
+      };
+      timeoutSec = lib.mkOption {
+        type = t.int;
+      };
+    }; };
+    };
     sandbox = lib.mkOption {
       type = t.submodule { options = {
       tools = lib.mkOption {
