@@ -128,6 +128,9 @@ in
           };
         }; };
         };
+        mode = lib.mkOption {
+          type = t.oneOf [ t.enum [ "default" ] t.enum [ "safeguard" ] ];
+        };
         reserveTokensFloor = lib.mkOption {
           type = t.int;
         };
@@ -866,6 +869,9 @@ in
             type = t.bool;
           };
         }; };
+        };
+        profile = lib.mkOption {
+          type = t.oneOf [ t.enum [ "minimal" ] t.enum [ "coding" ] t.enum [ "messaging" ] t.enum [ "full" ] ];
         };
         sandbox = lib.mkOption {
           type = t.submodule { options = {
@@ -3296,6 +3302,9 @@ in
         type = t.int;
       };
     }; };
+    };
+    profile = lib.mkOption {
+      type = t.oneOf [ t.enum [ "minimal" ] t.enum [ "coding" ] t.enum [ "messaging" ] t.enum [ "full" ] ];
     };
     sandbox = lib.mkOption {
       type = t.submodule { options = {
