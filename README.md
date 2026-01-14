@@ -593,6 +593,22 @@ in {
 
 Plugins are keyed by their declared `name`. If two plugins declare the same name, the **last entry wins** (use this to override a prod plugin with a local dev one).
 
+### Tool overrides (avoid collisions)
+
+Drop built-in tools that you already install elsewhere:
+
+```nix
+programs.clawdbot.excludeTools = [ "git" "jq" "ripgrep" ];
+```
+
+Or provide a custom list:
+
+```nix
+programs.clawdbot.toolNames = [ "nodejs_22" "pnpm_10" "summarize" ];
+```
+
+If you override `programs.clawdbot.package`, use `pkgs.clawdbotPackages.withTools { ... }.clawdbot` to apply these lists.
+
 ---
 
 ## Packaging & Updates

@@ -3,7 +3,17 @@
 let
   cfg = config.programs.clawdbot;
   homeDir = config.home.homeDirectory;
-  appPackage = if cfg.appPackage != null then cfg.appPackage else cfg.package;
+  toolOverrides = {
+    toolNamesOverride = cfg.toolNames;
+    excludeToolNames = cfg.excludeTools;
+  };
+  toolOverridesEnabled = cfg.toolNames != null || cfg.excludeTools != [];
+  toolSets = import ../../tools/extended.nix ({ inherit pkgs; } // toolOverrides);
+  defaultPackage =
+    if toolOverridesEnabled && cfg.package == pkgs.clawdbot
+    then (pkgs.clawdbotPackages.withTools toolOverrides).clawdbot
+    else cfg.package;
+  appPackage = if cfg.appPackage != null then cfg.appPackage else defaultPackage;
   generatedConfigOptions = import ../../generated/clawdbot-config-options.nix { lib = lib; };
 
   mkBaseConfig = workspaceDir: inst: {
@@ -75,7 +85,7 @@ let
 
       package = lib.mkOption {
         type = lib.types.package;
-        default = cfg.package;
+        default = defaultPackage;
         description = "Clawdbot batteries-included package.";
       };
 
@@ -445,8 +455,7 @@ let
   toolsReport =
     if documentsEnabled then
       let
-          toolNames =
-            (import ../../tools/extended.nix { inherit pkgs; }).toolNames or [];
+          toolNames = toolSets.toolNames or [];
           renderPkgName = pkg:
             if pkg ? pname then pkg.pname else lib.getName pkg;
           renderPlugin = plugin:
@@ -864,6 +873,18 @@ in {
       type = lib.types.package;
       default = pkgs.clawdbot;
       description = "Clawdbot batteries-included package.";
+    };
+
+    toolNames = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = null;
+      description = "Override the built-in toolchain names (see nix/tools/extended.nix).";
+    };
+
+    excludeTools = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Tool names to remove from the built-in toolchain.";
     };
 
     appPackage = lib.mkOption {
