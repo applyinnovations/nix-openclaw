@@ -4,35 +4,9 @@
 }:
 let
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  steipetePkgsPatched =
-    if steipetePkgs ? summarize then
-      steipetePkgs // {
-        summarize = steipetePkgs.summarize.overrideAttrs (old: {
-          env = (old.env or {}) // {
-            PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
-          };
-          postPatch = (old.postPatch or "") + ''
-            if [ -f package.json ]; then
-              python3 - <<'PY'
-import json
-from pathlib import Path
-
-path = Path("package.json")
-if path.exists():
-    data = json.loads(path.read_text())
-    if "packageManager" in data:
-        data.pop("packageManager", None)
-        path.write_text(json.dumps(data, indent=2) + "\n")
-PY
-            fi
-          '';
-        });
-      }
-    else
-      steipetePkgs;
   toolSets = import ../tools/extended.nix {
     pkgs = pkgs;
-    steipetePkgs = steipetePkgsPatched;
+    steipetePkgs = steipetePkgs;
   };
   clawdbotGateway = pkgs.callPackage ./clawdbot-gateway.nix {
     inherit sourceInfo;
