@@ -11,12 +11,22 @@ on:
 jobs:
   deploy:
     name: Build and Push
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-linux-small
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Nix cache
+        uses: namespacelabs/nscloud-cache-action@v1
+        with:
+          path: |
+            /nix
+            ~/.cache/nix
+
+      - name: Remove nix receipt for fresh install
+        run: sudo rm -f /nix/receipt.json /nix/nix-installer
+
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v13
+        uses: DeterminateSystems/nix-installer-action@v21
 
       - name: Update pins to requested version
         if: inputs.version != ''
