@@ -3,6 +3,9 @@ set -e
 mkdir -p "$out/lib/openclaw" "$out/bin"
 
 cp -r dist node_modules package.json ui "$out/lib/openclaw/"
+if [ -d docs ]; then
+  cp -r docs "$out/lib/openclaw/"
+fi
 if [ -d extensions ]; then
   cp -r extensions "$out/lib/openclaw/"
 fi
