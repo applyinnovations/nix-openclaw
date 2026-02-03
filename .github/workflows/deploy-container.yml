@@ -57,7 +57,7 @@ jobs:
         run: |
           REGISTRY="${{ secrets.XLAB_REGISTRY_DOMAIN }}"
           VERSION="${{ steps.build.outputs.version }}"
-          docker tag "${{ steps.build.outputs.image }}" "$REGISTRY/openclaw:$VERSION"
-          docker tag "${{ steps.build.outputs.image }}" "$REGISTRY/openclaw:latest"
-          docker push "$REGISTRY/openclaw:$VERSION"
-          docker push "$REGISTRY/openclaw:latest"
+          docker tag "${{ steps.build.outputs.image }}" "$REGISTRY/openclaw:$VERSION-patched"
+          docker tag "${{ steps.build.outputs.image }}" "$REGISTRY/openclaw:latest-patched"
+          docker push "$REGISTRY/openclaw:$VERSION-patched"
+          docker push "$REGISTRY/openclaw:latest-patched"
