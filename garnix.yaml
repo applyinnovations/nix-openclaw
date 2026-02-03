@@ -7,6 +7,7 @@ builds:
     - "packages.x86_64-linux.openclaw"
     - "packages.x86_64-linux.openclaw-gateway"
     - "packages.x86_64-linux.openclaw-tools"
+    - "packages.x86_64-linux.openclaw-container"
     - "checks.aarch64-darwin.gateway"
     - "checks.x86_64-linux.gateway"
     - "checks.x86_64-linux.gateway-tests"

@@ -1,0 +1,63 @@
+name: Deploy Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Openclaw version tag to build (leave empty for latest pinned)"
+        required: false
+        default: ""
+
+jobs:
+  deploy:
+    name: Build and Push
+    runs-on: namespace-profile-linux-small
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Nix cache
+        uses: namespacelabs/nscloud-cache-action@v1
+        with:
+          path: |
+            /nix
+            ~/.cache/nix
+
+      - name: Remove nix receipt for fresh install
+        run: sudo rm -f /nix/receipt.json /nix/nix-installer
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Update pins to requested version
+        if: inputs.version != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "openclaw-ci"
+          git config user.email "ci@openclaw.local"
+          OPENCLAW_VERSION="${{ inputs.version }}" scripts/update-pins.sh
+
+      - name: Build container
+        id: build
+        run: |
+          nix build --accept-flake-config .#openclaw-container
+          LOADED=$(docker load < result)
+          IMAGE=$(echo "$LOADED" | grep -oP 'Loaded image: \K.*')
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          VERSION=$(nix eval --raw .#openclaw-container.imageTag)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Docker registry
+        run: |
+          echo "${{ secrets.XLAB_REGISTRY_PASSWORD }}" | \
+            docker login "${{ secrets.XLAB_REGISTRY_DOMAIN }}" \
+              -u "${{ secrets.XLAB_REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Push container
+        run: |
+          REGISTRY="${{ secrets.XLAB_REGISTRY_DOMAIN }}"
+          VERSION="${{ steps.build.outputs.version }}"
+          docker tag "${{ steps.build.outputs.image }}" "$REGISTRY/openclaw:$VERSION-patched"
+          docker tag "${{ steps.build.outputs.image }}" "$REGISTRY/openclaw:latest-patched"
+          docker push "$REGISTRY/openclaw:$VERSION-patched"
+          docker push "$REGISTRY/openclaw:latest-patched"

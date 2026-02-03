@@ -26,8 +26,13 @@ let
     openclaw-app = openclawApp;
     extendedTools = toolSets.tools;
   };
+  openclawContainer = if !isDarwin then pkgs.callPackage ./openclaw-container.nix {
+    openclaw-gateway = openclawGateway;
+    extendedTools = toolSets.tools;
+  } else null;
 in {
   openclaw-gateway = openclawGateway;
   openclaw = openclawBundle;
   openclaw-tools = openclawTools;
 } // (if isDarwin then { openclaw-app = openclawApp; } else {})
+  // (if !isDarwin then { openclaw-container = openclawContainer; } else {})
