@@ -150,13 +150,13 @@ const baseTypeForSchema = (schemaObj: JsonSchema, indent: string): string => {
 
   if (schema.anyOf && Array.isArray(schema.anyOf) && schema.anyOf.length > 0) {
     const entries = schema.anyOf as JsonSchema[];
-    const parts = entries.map((entry) => typeForSchema(entry, indent)).join(" ");
+    const parts = entries.map((entry) => `(${typeForSchema(entry, indent)})`).join(" ");
     return `t.oneOf [ ${parts} ]`;
   }
 
   if (schema.oneOf && Array.isArray(schema.oneOf) && schema.oneOf.length > 0) {
     const entries = schema.oneOf as JsonSchema[];
-    const parts = entries.map((entry) => typeForSchema(entry, indent)).join(" ");
+    const parts = entries.map((entry) => `(${typeForSchema(entry, indent)})`).join(" ");
     return `t.oneOf [ ${parts} ]`;
   }
 
@@ -166,7 +166,9 @@ const baseTypeForSchema = (schemaObj: JsonSchema, indent: string): string => {
 
   const schemaType = schema.type;
   if (Array.isArray(schemaType) && schemaType.length > 0) {
-    const parts = schemaType.map((entry) => typeForSchema({ type: entry }, indent)).join(" ");
+    const parts = schemaType
+      .map((entry) => `(${typeForSchema({ type: entry }, indent)})`)
+      .join(" ");
     return `t.oneOf [ ${parts} ]`;
   }
 
@@ -220,14 +222,23 @@ const objectTypeForSchema = (schema: JsonSchema, indent: string): string => {
   return `t.submodule { options = {\n${inner}\n${indent}}; }`;
 };
 
-const renderOption = (key: string, schemaObj: JsonSchema, _required: boolean, indent: string): string => {
+const renderOption = (key: string, schemaObj: JsonSchema, required: boolean, indent: string): string => {
   const schema = deref(schemaObj, new Set());
   const description = typeof schema.description === "string" ? schema.description : null;
-  const typeExpr = typeForSchema(schema, indent);
+  const hasSchemaDefault = schema.default !== undefined;
+  const effectiveRequired = required && !hasSchemaDefault;
+  const baseTypeExpr = typeForSchema(schema, indent);
+  const typeExpr =
+    !effectiveRequired && !baseTypeExpr.startsWith("t.nullOr")
+      ? `t.nullOr (${baseTypeExpr})`
+      : baseTypeExpr;
   const lines = [
     `${indent}${nixAttr(key)} = lib.mkOption {`,
     `${indent}  type = ${typeExpr};`,
   ];
+  if (!effectiveRequired) {
+    lines.push(`${indent}  default = null;`);
+  }
   if (description) {
     lines.push(`${indent}  description = ${stringify(description)};`);
   }
