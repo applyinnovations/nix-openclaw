@@ -1402,6 +1402,10 @@ in
       }; });
         default = null;
       };
+      skills = lib.mkOption {
+        type = t.nullOr (t.listOf (t.str));
+        default = null;
+      };
       subagents = lib.mkOption {
         type = t.nullOr (t.submodule { options = {
         allowAgents = lib.mkOption {
